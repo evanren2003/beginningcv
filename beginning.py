@@ -98,6 +98,10 @@ plt.plot(origHist)
 plt.show()
 cv2.waitKey(0)
 
+
+#can use arithmetic.py stuff with cv2.add, but have to initialize the
+#array with random values D:
+#tha might be faster than what this is right now lmao
 for i in range(imageCopy.shape[0]):
 	for j in range(imageCopy.shape[1]):
 		#implement an if statement if the thing is black or white
@@ -126,3 +130,5 @@ plt.show()
 cv2.waitKey(0)
 
 #look at different levels of blur (mess around with the arguments)
+
+#copy image using numpy copy method?
