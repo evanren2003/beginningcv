@@ -24,6 +24,8 @@ for i in range(image.shape[0]//2): #inverts colors
 cv2.imshow("Updated",image)
 cv2.waitKey(0)
 
+swappedImage = image.copy() #making a copy here for future use
+
 shapesImage = np.zeros(image.shape[:2],dtype="uint8") #will show just the shapes
 shapeList = ["rec","circle"] #create a list to take a random element from
 for i in range(4):#what did i just do bruh
@@ -107,9 +109,9 @@ for i in range(imageCopy.shape[0]):
 		#implement an if statement if the thing is black or white
 		#so u dont get the random rainbow colors
 		(b,g,r) = imageCopy[i,j]
-		blueChange = random.choice(range(0,10))
-		greenChange = random.choice(range(0,10))
-		redChange = random.choice(range(0,10))
+		blueChange = random.choice(range(2,10))
+		greenChange = random.choice(range(2,10))
+		redChange = random.choice(range(2,10))
 		imageCopy[i,j] = (b-blueChange,g-greenChange,r-redChange)
 
 cv2.imshow("adjusted", imageCopy)
@@ -129,6 +131,47 @@ for (channel,color) in zip(newChannels,newColors): #show different color channel
 plt.show()
 cv2.waitKey(0)
 
-#look at different levels of blur (mess around with the arguments)
 
-#copy image using numpy copy method?
+(height,width) = swappedImage.shape[:2]
+center = (width//2,height//2)
+rot = cv2.getRotationMatrix2D(center,180,1.0)
+rotated = cv2.warpAffine(swappedImage, rot, (width,height))
+cv2.imshow("rotated by 180", rotated)
+cv2.waitKey(0)
+
+for i in range(rotated.shape[0]//2): #invert colors of another corner
+    for j in range(rotated.shape[1]//2):
+        (b,g,r) = rotated[i,j]
+        rotated[i,j] = (255-b,255-g,255-r)
+
+cv2.imshow("corners inverted", rotated)
+cv2.waitKey(0)
+
+mixedImage = np.zeros(image.shape[:2],dtype = "uint8") #gonna swap around pieces of the image
+for i in range(rotated.shape[0]//2): #oops should probably use a variable for rotated.shape(1,2)
+	for j in range(rotated.shape[1]//2):
+		mixedImage[i,j] = rotated[i+rotated.shape[0]//2][j+rotated.shape[1]//2]
+		mixedImage[i+rotated.shape[0]//2][j] = rotated[i][j+rotated.shape[1]//2]
+		mixedImage[i][j+rotated.shape[1]//2] = rotated[i+rotated.shape[0]//2][j]
+		mixedImage[i+rotated.shape[0]//2][j+rotated.shape[1]//2] = rotated[i][j]
+
+#use image transformation and the numpy copy method to make a copy of the image
+#and take values from the original amtrix but in different order
+#so the topright and bottom left corners get swapped
+#and top left and bottom right corners get swapped
+#for example
+#12 becomes 43
+#34         21
+
+cv2.imshow("mixed image", mixedImage)
+cv2.waitKey(0)
+
+for i in range(rotated.shape[0]//2):
+	for j in range(rotated.shape[1]//2):
+		(b,g,r) = mixedImage[i+rotated.shape[0]//4,j+rotated.shape[1]//4]
+		mixedImage[i+rotated.shape[0]//4,j+rotated.shape[1]//4] = (255-b,255-g,255-r)
+
+cv2.imshow("center square inverted", mixedImage)
+cv2.waitKey(0)
+
+#look at different levels of blur (mess around with the arguments)
