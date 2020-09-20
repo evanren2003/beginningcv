@@ -28,7 +28,7 @@ swappedImage = image.copy() #making a copy here for future use
 
 shapesImage = np.zeros(image.shape[:2],dtype="uint8") #will show just the shapes
 shapeList = ["rec","circle"] #create a list to take a random element from
-for i in range(4):#what did i just do bruh
+for i in range(4):
     blank = np.zeros(image.shape[:2],dtype="uint8")
     shape = random.choice(shapeList)
     #creates a random circle or rectangle with size in a given range
@@ -49,7 +49,7 @@ for i in range(4):#what did i just do bruh
         cv2.circle(blank,(centerX,centerY),radius,255,-1)
         image = cv2.bitwise_not(image,image,mask = blank)
     #applies the random shape as a mask to image
-    # image = cv2.bitwise_and(image,image,mask = blank)
+    #image = cv2.bitwise_and(image,image,mask = blank)
     #using xor because it's easier to tell where the shapes actually are
     shapesImage = cv2.bitwise_xor(shapesImage,blank)
 
@@ -58,9 +58,7 @@ cv2.waitKey(0)
 cv2.imshow("Shapes Image",shapesImage)
 cv2.waitKey(0)
 
-######################################################
-
-imageCopy = cv2.imread(args["image"]) #this is a copy
+imageCopy = cv2.imread(args["image"]) #I could've (or should've) used image.copy
 
 (blue, green, red) = cv2.split(imageCopy) #blue,green,red have single value elements
 zeros = np.zeros(image.shape[:2],dtype = "uint8")
@@ -74,10 +72,10 @@ cv2.waitKey(0)
 #next split the image into its rgb and then take the inverse of those?
 #think of something creative
 
-cv2.imshow("blue",cv2.merge([blue,zeros,zeros]))
+cv2.imshow("blue",cv2.merge([blue,zeros,zeros])) #not sure why i did this but it's here
 cv2.waitKey(0)
 
-channels = cv2.split(imageCopy) #so I don't have to deal with a list
+channels = cv2.split(imageCopy) #channel variable is a list :O
 colors = ("b","g","r")
 
 plt.figure()
@@ -101,18 +99,14 @@ plt.show()
 cv2.waitKey(0)
 
 
-#can use arithmetic.py stuff with cv2.add, but have to initialize the
-#array with random values D:
-#tha might be faster than what this is right now lmao
 for i in range(imageCopy.shape[0]):
 	for j in range(imageCopy.shape[1]):
-		#implement an if statement if the thing is black or white
-		#so u dont get the random rainbow colors
+		#generate random values for b,g,r and subtract that from each pixel
 		(b,g,r) = imageCopy[i,j]
-		blueChange = random.choice(range(2,10))
-		greenChange = random.choice(range(2,10))
-		redChange = random.choice(range(2,10))
-		imageCopy[i,j] = (b-blueChange,g-greenChange,r-redChange)
+		blueChange = random.choice(range(7,25)) #random value from 7 to 24
+		greenChange = random.choice(range(7,25))
+		redChange = random.choice(range(7,25))
+		imageCopy[i,j] = (b-blueChange,g-greenChange,r-redChange) #change value of original pixel
 
 cv2.imshow("adjusted", imageCopy)
 cv2.waitKey(0)
@@ -120,10 +114,7 @@ cv2.waitKey(0)
 newChannels = cv2.split(imageCopy)
 newColors = ("b","g","r")
 
-########does this even make sense????
-#what is happpening
-
-for (channel,color) in zip(newChannels,newColors): #show different color channels
+for (channel,color) in zip(newChannels,newColors): #look at the new histogram after image has been modified
 	hist = cv2.calcHist([channel],[0],None,[256],[0,256])
 	plt.plot(hist, color = color)
 	plt.xlim([0,256])
@@ -134,6 +125,7 @@ cv2.waitKey(0)
 
 (height,width) = swappedImage.shape[:2]
 center = (width//2,height//2)
+#rotate the image by 180 degrees
 rot = cv2.getRotationMatrix2D(center,180,1.0)
 rotated = cv2.warpAffine(swappedImage, rot, (width,height))
 cv2.imshow("rotated by 180", rotated)
@@ -147,13 +139,18 @@ for i in range(rotated.shape[0]//2): #invert colors of another corner
 cv2.imshow("corners inverted", rotated)
 cv2.waitKey(0)
 
-mixedImage = np.zeros(image.shape[:2],dtype = "uint8") #gonna swap around pieces of the image
+mixedImage = image.copy() #I tried this with a numpy array at first but couldn't get it to work
+#the original value of this image doesn't matter since the pixels are getting changed
+#any image can go here as long as the dimensions are right
+#gonna swap around pieces of the image
 for i in range(rotated.shape[0]//2): #oops should probably use a variable for rotated.shape(1,2)
 	for j in range(rotated.shape[1]//2):
-		mixedImage[i,j] = rotated[i+rotated.shape[0]//2][j+rotated.shape[1]//2]
-		mixedImage[i+rotated.shape[0]//2][j] = rotated[i][j+rotated.shape[1]//2]
-		mixedImage[i][j+rotated.shape[1]//2] = rotated[i+rotated.shape[0]//2][j]
-		mixedImage[i+rotated.shape[0]//2][j+rotated.shape[1]//2] = rotated[i][j]
+		#assigns pixel values according to the original image, but
+		#they are in different order, so the image appears to have its corner swapped
+		mixedImage[i,j] = rotated[i+(rotated.shape[0])//2,j+(rotated.shape[1])//2]
+		mixedImage[i+(rotated.shape[0])//2,j] = rotated[i,j+(rotated.shape[1])//2]
+		mixedImage[i,j+(rotated.shape[1])//2] = rotated[i+(rotated.shape[0])//2,j]
+		mixedImage[i+(rotated.shape[0])//2,j+(rotated.shape[1])//2] = rotated[i,j]
 
 #use image transformation and the numpy copy method to make a copy of the image
 #and take values from the original amtrix but in different order
@@ -166,6 +163,7 @@ for i in range(rotated.shape[0]//2): #oops should probably use a variable for ro
 cv2.imshow("mixed image", mixedImage)
 cv2.waitKey(0)
 
+#invert the center square
 for i in range(rotated.shape[0]//2):
 	for j in range(rotated.shape[1]//2):
 		(b,g,r) = mixedImage[i+rotated.shape[0]//4,j+rotated.shape[1]//4]
@@ -174,4 +172,31 @@ for i in range(rotated.shape[0]//2):
 cv2.imshow("center square inverted", mixedImage)
 cv2.waitKey(0)
 
-#look at different levels of blur (mess around with the arguments)
+#testing 5 as argument for the 3 differnt types of blurs
+blur = cv2.blur(mixedImage, (5,5))
+gaussian = cv2.GaussianBlur(mixedImage, (5,5), 0)
+median = cv2.medianBlur(mixedImage, 5)
+
+cv2.imshow("average blur", blur)
+cv2.waitKey(0)
+cv2.imshow("gaussian blur", gaussian)
+cv2.waitKey(0)
+cv2.imshow("median blur", median)
+cv2.waitKey(0)
+
+#just seeing what happens when the arguments are set VERY BIG for the different blurs
+mediumMedian = cv2.medianBlur(mixedImage, 51)
+cv2.imshow("mediumMedian", mediumMedian)
+cv2.waitKey(0)
+
+mediumGaussian = cv2.GaussianBlur(mixedImage, (51,51), 0)
+cv2.imshow("mediumGaussian", mediumGaussian)
+cv2.waitKey(0)
+
+mediumBlur = cv2.blur(mixedImage, (51,51))
+cv2.imshow("BLur", mediumBlur)
+cv2.waitKey(0)
+
+bigBlur = cv2.blur(mixedImage, (101,101))
+cv2.imshow("BLUR", bigBlur)
+cv2.waitKey(0)
